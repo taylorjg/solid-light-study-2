@@ -1,9 +1,8 @@
-// uniform vec3 haloPosition;
-varying vec3 vPosition;
-// varying vec3 vHaloPosition;
+varying vec3 vPointInObjectSpace;
+varying vec2 vUv;
 
 void main() {
-  vPosition = (modelMatrix * vec4(position, 1.0)).xyz;
-  // vHaloPosition = (modelViewMatrix * vec4(haloPosition, 1.0)).xyz;
+  vPointInObjectSpace = position;
+  vUv = uv;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }

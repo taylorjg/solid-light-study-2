@@ -1,20 +1,20 @@
-varying vec3 vPosition;
-// varying vec3 vHaloPosition;
+uniform vec3 cameraPositionInObjectSpace;
+uniform sampler2D hazeTexture;
+uniform float R;
+uniform float R2;
+uniform float recipR2;
+uniform float recip3R2;
+uniform float normalizer;
 
-const float R = 1.0;
-const float R2 = R * R;
-const float recipR2 = 1.0 / R2;
-const float recip3R2 = 1.0 / (3.0 * R2);
-const float normalizer = 3.0 / (4.0 * R);
+varying vec3 vPointInObjectSpace;
+varying vec2 vUv;
 
 float CalculateHaloBrightness()
 {
-	vec3 vdir = cameraPosition - vPosition;
-  // vec3 cameraPositionInObjectSpace = cameraPosition - vHaloPosition;
-	// vec3 vdir = cameraPositionInObjectSpace - vPosition;
+	vec3 vdir = cameraPositionInObjectSpace - vPointInObjectSpace;
 	float v2 = dot(vdir, vdir);
-	float p2 = dot(vPosition, vPosition);
-	float pv = -dot(vPosition, vdir);
+	float p2 = dot(vPointInObjectSpace, vPointInObjectSpace);
+	float pv = -dot(vPointInObjectSpace, vdir);
 	float m = sqrt(max(pv * pv - v2 * (p2 - R2), 0.0));
 
 	// Calculate clamped limits of integration.
@@ -30,5 +30,7 @@ float CalculateHaloBrightness()
 
 void main() {
   float B = CalculateHaloBrightness();
-  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0) * B;
+  gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0) * B;
+  // vec4 hazeValue = texture2D(hazeTexture, vUv);
+  // gl_FragColor = hazeValue * B;
 }
