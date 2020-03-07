@@ -2,8 +2,8 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper.js'
 import { Form, setSpeed } from './form'
-import vertexShader from './vertex-shader.glsl'
-import fragmentShader from './fragment-shader.glsl'
+import haloVertexShader from './shaders/halo-vertex-shader.glsl'
+import haloFragmentShader from './shaders/halo-fragment-shader.glsl'
 import * as U from './utils'
 import * as C from './constants'
 
@@ -22,9 +22,6 @@ const main = async () => {
   camera.lookAt(new THREE.Vector3(0, 0, 0))
   scene.add(camera)
 
-  let axesHelper = null
-  let vertexNormalsHelper = null
-
   const controls = new OrbitControls(camera, renderer.domElement)
   controls.target.set(0, 0, 0)
   controls.minDistance = 0
@@ -42,39 +39,58 @@ const main = async () => {
 
   const hazeTexture = await U.loadTexture('haze.jpg')
 
-  const CUBE_SIZE = 4
+  const CUBE_SIZE = 2
   const R = CUBE_SIZE / 2
   const R2 = R * R
   const recipR2 = 1.0 / R2
   const recip3R2 = 1.0 / (3.0 * R2)
   const normalizer = 3.0 / (4.0 * R)
 
-  const haloPosition = new THREE.Vector3(3.5, 0.43, 2)
-  const haloGeometry = new THREE.BoxBufferGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)
-  const haloMaterial = new THREE.ShaderMaterial({
-    uniforms: {
-      cameraPositionInObjectSpace: { value: new THREE.Vector3() },
-      hazeTexture: { value: hazeTexture },
-      R: { value: R },
-      R2: { value: R2 },
-      recipR2: { value: recipR2 },
-      recip3R2: { value: recip3R2 },
-      normalizer: { value: normalizer }
-    },
-    vertexShader,
-    fragmentShader,
-    side: THREE.BackSide,
-    transparent: true
-  })
-  const haloMesh = new THREE.Mesh(haloGeometry, haloMaterial)
-  haloMesh.position.copy(haloPosition)
-  scene.add(haloMesh)
+  const makeHalo = position => {
+    const geometry = new THREE.BoxBufferGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        cameraPositionInObjectSpace: { value: new THREE.Vector3() },
+        hazeTexture: { value: hazeTexture },
+        R2: { value: R2 },
+        recipR2: { value: recipR2 },
+        recip3R2: { value: recip3R2 },
+        normalizer: { value: normalizer }
+      },
+      vertexShader: haloVertexShader,
+      fragmentShader: haloFragmentShader,
+      side: THREE.BackSide,
+      transparent: true
+    })
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.position.copy(position)
+
+    return {
+      geometry,
+      material,
+      mesh,
+      update: () => {
+        const cameraPositionInWorldSpace = camera.position.clone()
+        const cameraPositionInObjectSpace = mesh.worldToLocal(cameraPositionInWorldSpace)
+        material.uniforms.cameraPositionInObjectSpace.value.copy(cameraPositionInObjectSpace)
+      }
+    }
+  }
+
+  const halos = []
+  halos.push(makeHalo(new THREE.Vector3()))
+  halos.push(makeHalo(new THREE.Vector3(-4, 0, 2)))
+  halos.push(makeHalo(new THREE.Vector3(4, 0, 2)))
+  halos.forEach(halo => scene.add(halo.mesh))
 
   window.addEventListener('resize', () => {
     renderer.setSize(container.offsetWidth, container.offsetHeight)
     camera.aspect = container.offsetWidth / container.offsetHeight
     camera.updateProjectionMatrix()
   })
+
+  let axesHelper = null
+  let vertexNormalsHelpers = null
 
   const toggleAxesHelper = () => {
     if (axesHelper) {
@@ -86,13 +102,16 @@ const main = async () => {
     }
   }
 
-  const toggleVertexNormalsHelper = () => {
-    if (vertexNormalsHelper) {
-      scene.remove(vertexNormalsHelper)
-      vertexNormalsHelper = null
+  const toggleVertexNormalsHelpers = () => {
+    if (vertexNormalsHelpers) {
+      vertexNormalsHelpers.forEach(vertexNormalsHelper => scene.remove(vertexNormalsHelper))
+      vertexNormalsHelpers = null
     } else {
-      vertexNormalsHelper = new VertexNormalsHelper(haloMesh, 0.2, 0xffffff)
-      scene.add(vertexNormalsHelper)
+      vertexNormalsHelpers = halos.map(halo => {
+        const vertexNormalsHelper = new VertexNormalsHelper(halo.mesh, 0.2, 0xffffff)
+        scene.add(vertexNormalsHelper)
+        return vertexNormalsHelper
+      })
     }
   }
 
@@ -103,7 +122,7 @@ const main = async () => {
       case '3': return setSpeed(5)
       case '4': return setSpeed(10)
       case 'a': return toggleAxesHelper()
-      case 'v': return toggleVertexNormalsHelper()
+      case 'v': return toggleVertexNormalsHelpers()
     }
   })
 
@@ -111,8 +130,7 @@ const main = async () => {
     leftForm.update()
     rightForm.update()
     controls.update()
-    const cameraPositionInObjectSpace = haloMesh.worldToLocal(camera.position.clone())
-    haloMaterial.uniforms.cameraPositionInObjectSpace.value.copy(cameraPositionInObjectSpace)
+    halos.forEach(halo => halo.update())
     renderer.render(scene, camera)
     requestAnimationFrame(render)
   }

@@ -1,6 +1,5 @@
 uniform vec3 cameraPositionInObjectSpace;
 uniform sampler2D hazeTexture;
-uniform float R;
 uniform float R2;
 uniform float recipR2;
 uniform float recip3R2;
