@@ -2,9 +2,8 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper.js'
 import { Form, setSpeed } from './form'
-import haloVertexShader from './shaders/halo-vertex-shader.glsl'
-import haloFragmentShader from './shaders/halo-fragment-shader.glsl'
-import * as U from './utils'
+import { makeHalo } from './halo'
+import { makeShaft } from './shaft'
 import * as C from './constants'
 
 const main = async () => {
@@ -37,51 +36,19 @@ const main = async () => {
   const leftForm = new Form(scene, C.LEFT_FORM_CENTRE_X, y, rx, ry, true)
   const rightForm = new Form(scene, C.RIGHT_FORM_CENTRE_X, y, rx, ry, false)
 
-  const hazeTexture = await U.loadTexture('haze.jpg')
-
-  const CUBE_SIZE = 2
-  const R = CUBE_SIZE / 2
-  const R2 = R * R
-  const recipR2 = 1.0 / R2
-  const recip3R2 = 1.0 / (3.0 * R2)
-  const normalizer = 3.0 / (4.0 * R)
-
-  const makeHalo = position => {
-    const geometry = new THREE.BoxBufferGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)
-    const material = new THREE.ShaderMaterial({
-      uniforms: {
-        cameraPositionInObjectSpace: { value: new THREE.Vector3() },
-        hazeTexture: { value: hazeTexture },
-        R2: { value: R2 },
-        recipR2: { value: recipR2 },
-        recip3R2: { value: recip3R2 },
-        normalizer: { value: normalizer }
-      },
-      vertexShader: haloVertexShader,
-      fragmentShader: haloFragmentShader,
-      side: THREE.BackSide,
-      transparent: true
-    })
-    const mesh = new THREE.Mesh(geometry, material)
-    mesh.position.copy(position)
-
-    return {
-      geometry,
-      material,
-      mesh,
-      update: () => {
-        const cameraPositionInWorldSpace = camera.position.clone()
-        const cameraPositionInObjectSpace = mesh.worldToLocal(cameraPositionInWorldSpace)
-        material.uniforms.cameraPositionInObjectSpace.value.copy(cameraPositionInObjectSpace)
-      }
-    }
-  }
-
   const halos = []
-  halos.push(makeHalo(new THREE.Vector3()))
+  // halos.push(makeHalo(new THREE.Vector3()))
   halos.push(makeHalo(new THREE.Vector3(-4, 0, 2)))
   halos.push(makeHalo(new THREE.Vector3(4, 0, 2)))
   halos.forEach(halo => scene.add(halo.mesh))
+
+  const shafts = []
+  shafts.push(makeShaft(0, 0))
+  shafts.forEach(shaft => scene.add(shaft.mesh))
+  shafts.forEach(shaft => {
+    const vertexNormalsHelper = new VertexNormalsHelper(shaft.mesh, 0.2, 0xffffff)
+    scene.add(vertexNormalsHelper)
+  })
 
   window.addEventListener('resize', () => {
     renderer.setSize(container.offsetWidth, container.offsetHeight)
@@ -130,7 +97,8 @@ const main = async () => {
     leftForm.update()
     rightForm.update()
     controls.update()
-    halos.forEach(halo => halo.update())
+    halos.forEach(halo => halo.update(camera))
+    shafts.forEach(shaft => shaft.update(camera))
     renderer.render(scene, camera)
     requestAnimationFrame(render)
   }

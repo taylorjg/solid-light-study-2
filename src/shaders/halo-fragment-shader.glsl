@@ -1,15 +1,12 @@
 uniform vec3 cameraPositionInObjectSpace;
-uniform sampler2D hazeTexture;
 uniform float R2;
 uniform float recipR2;
 uniform float recip3R2;
 uniform float normalizer;
 
 varying vec3 vPointInObjectSpace;
-varying vec2 vUv;
 
-float CalculateHaloBrightness()
-{
+float CalculateHaloBrightness() {
 	vec3 vdir = cameraPositionInObjectSpace - vPointInObjectSpace;
 	float v2 = dot(vdir, vdir);
 	float p2 = dot(vPointInObjectSpace, vPointInObjectSpace);
@@ -29,7 +26,5 @@ float CalculateHaloBrightness()
 
 void main() {
   float B = CalculateHaloBrightness();
-  gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0) * B;
-  // vec4 hazeValue = texture2D(hazeTexture, vUv);
-  // gl_FragColor = hazeValue * B;
+  gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0) * B;
 }
