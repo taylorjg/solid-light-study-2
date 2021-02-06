@@ -21,7 +21,7 @@ float CalculateHaloBrightness() {
 
 	// Evaluate density integral, normalize, and square.
 	float B = ((1.0 - p2 * recipR2) * (t2 - t1) + pv * recipR2 * (u2 - u1) - v2 * recip3R2 * (t2 * u2 - t1 * u1)) * normalizer;
-	return (B * B * v2);
+	return B * B * v2;
 }
 
 void main() {

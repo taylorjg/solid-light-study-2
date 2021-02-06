@@ -2,13 +2,25 @@ uniform vec3 cameraPositionInObjectSpace;
 uniform float rx2;
 uniform float ry2;
 uniform float rx2ry2;
-uniform float sigma;
 uniform float rho0;
+uniform float sigma;
+uniform float tau;
 uniform float normalizer;
 
 varying vec3 vPointInObjectSpace;
 
 float CalculateShaftBrightness(float pz, vec3 vdir, float t1, float t2) {
+
+	// Limit to range where density is not negative.
+	float tlim = (tau - pz) / vdir.z;
+	if (vdir.z * sigma < 0.0) {
+		t1 = min(t1, tlim);
+		t2 = min(t2, tlim);
+	} else {
+		t1 = max(t1, tlim);
+		t2 = max(t2, tlim);
+	}
+
 	// Evaluate density integral, normalize, and square.
 	float B = (sigma * (pz + vdir.z * ((t1 + t2) * 0.5)) + rho0) * (t2 - t1) * normalizer;
 	return (B * B * dot(vdir, vdir));
