@@ -1,10 +1,11 @@
 import * as THREE from 'three'
 import shaftVertexShader from './shaders/shaft-vertex-shader.glsl'
 import shaftFragmentShader from './shaders/shaft-fragment-shader.glsl'
+import { reverseNormals } from './utils'
 
-const h = 20
-const rx = 2
-const ry = 2
+const h = 10
+const rx = 1
+const ry = 1
 const d = rx * 2
 const rx2 = rx * rx
 const ry2 = ry * ry
@@ -16,7 +17,7 @@ const tau = -rho0 / sigma
 const normalizer = 1 / (d * Math.max(rho0, rho1))
 
 export const makeShaft = (x, y) => {
-  const geometry = new THREE.BoxBufferGeometry(rx * 2, ry * 2, h)
+  const geometry = new THREE.BoxBufferGeometry(rx * 2, ry * 2, h, 10, 10, 10)
   const material = new THREE.ShaderMaterial({
     uniforms: {
       cameraPositionInObjectSpace: { value: new THREE.Vector3() },
@@ -31,21 +32,19 @@ export const makeShaft = (x, y) => {
     vertexShader: shaftVertexShader,
     fragmentShader: shaftFragmentShader,
     side: THREE.BackSide,
-    transparent: true
+    transparent: true,
+    depthTest: false
   })
   const mesh = new THREE.Mesh(geometry, material)
-  mesh.position.setX(x)
-  mesh.position.setY(y)
+  // mesh.position.setX(x)
+  // mesh.position.setY(y)
   mesh.position.setZ(h - h / 2)
-  mesh.rotateX(Math.PI / 180 * -20)
+  // mesh.rotateX(Math.PI / 180 * -20)
+  mesh.rotateX(Math.PI/2)
 
-  const normalAttribute = geometry.getAttribute('normal')
-  const array = normalAttribute.array
-  array.forEach((_, index) => array[index] *= -1)
+  reverseNormals(geometry)
 
   return {
-    geometry,
-    material,
     mesh,
     update: camera => {
       const cameraPositionInWorldSpace = camera.position.clone()
