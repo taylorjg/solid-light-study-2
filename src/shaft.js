@@ -3,31 +3,77 @@ import shaftVertexShader from './shaders/shaft-vertex-shader.glsl'
 import shaftFragmentShader from './shaders/shaft-fragment-shader.glsl'
 import { reverseNormals } from './utils'
 
-const h = 10
 const rx = 1
 const ry = 1
-const d = rx * 2
+const h = 10
 const rx2 = rx * rx
 const ry2 = ry * ry
 const rx2ry2 = rx2 * ry2
-const rho0 = 0.15
-const rho1 = 0.2
-const sigma = (rho1 - rho0) / h
-const tau = -rho0 / sigma
-const normalizer = 1 / (d * Math.max(rho0, rho1))
+const shaftRho0 = 0.01
+const shaftRho1 = 0.05
+const shaftSigma = (shaftRho1 - shaftRho0) / h
+const shaftTau = -shaftRho0 / shaftSigma
+const D = rx * 2
+const N = 1 / (D * Math.max(shaftRho0, shaftRho1))
+
+const vertices = [
+  new THREE.Vector3(rx, -ry, h),
+  new THREE.Vector3(rx, -ry, 0),
+  new THREE.Vector3(rx, ry, 0),
+  new THREE.Vector3(rx, ry, h),
+  new THREE.Vector3(-rx, -ry, h),
+  new THREE.Vector3(-rx, -ry, 0),
+  new THREE.Vector3(-rx, ry, 0),
+  new THREE.Vector3(-rx, ry, h),
+]
+
+const points = [
+  // right
+  vertices[0],
+  vertices[1],
+  vertices[2],
+  vertices[0],
+  vertices[2],
+  vertices[3],
+  // left
+  vertices[6],
+  vertices[5],
+  vertices[4],
+  vertices[7],
+  vertices[6],
+  vertices[4],
+  // top
+  vertices[3],
+  vertices[2],
+  vertices[6],
+  vertices[3],
+  vertices[6],
+  vertices[7],
+  // bottom
+  vertices[5],
+  vertices[1],
+  vertices[0],
+  vertices[4],
+  vertices[5],
+  vertices[0]
+]
 
 export const makeShaft = (x, y) => {
-  const geometry = new THREE.BoxBufferGeometry(rx * 2, ry * 2, h, 10, 10, 10)
+
+  const geometry = new THREE.BufferGeometry().setFromPoints(points)
+  geometry.computeVertexNormals()
+  reverseNormals(geometry)
+
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      cameraPositionInObjectSpace: { value: new THREE.Vector3() },
+      cameraPositionOS: { value: new THREE.Vector3() },
       rx2: { value: rx2 },
       ry2: { value: ry2 },
       rx2ry2: { value: rx2ry2 },
-      rho0: { value: rho0 },
-      sigma: { value: sigma },
-      tau: { value: tau },
-      normalizer: { value: normalizer }
+      shaftSigma: { value: shaftSigma },
+      shaftRho0: { value: shaftRho0 },
+      shaftTau: { value: shaftTau },
+      normalizer: { value: N }
     },
     vertexShader: shaftVertexShader,
     fragmentShader: shaftFragmentShader,
@@ -35,21 +81,17 @@ export const makeShaft = (x, y) => {
     transparent: true,
     depthTest: false
   })
-  const mesh = new THREE.Mesh(geometry, material)
-  // mesh.position.setX(x)
-  // mesh.position.setY(y)
-  mesh.position.setZ(h - h / 2)
-  // mesh.rotateX(Math.PI / 180 * -20)
-  mesh.rotateX(Math.PI/2)
 
-  reverseNormals(geometry)
+  const mesh = new THREE.Mesh(geometry, material)
+  mesh.position.setX(x)
+  mesh.position.setY(y)
 
   return {
     mesh,
     update: camera => {
-      const cameraPositionInWorldSpace = camera.position.clone()
-      const cameraPositionInObjectSpace = mesh.worldToLocal(cameraPositionInWorldSpace)
-      material.uniforms.cameraPositionInObjectSpace.value.copy(cameraPositionInObjectSpace)
+      const cameraPositionWS = camera.position.clone()
+      const cameraPositionOS = mesh.worldToLocal(cameraPositionWS)
+      mesh.material.uniforms.cameraPositionOS.value.copy(cameraPositionOS)
     }
   }
 }

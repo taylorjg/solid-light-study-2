@@ -3,12 +3,12 @@ import haloVertexShader from './shaders/halo-vertex-shader.glsl'
 import haloFragmentShader from './shaders/halo-fragment-shader.glsl'
 import { reverseNormals } from './utils'
 
-const CUBE_SIZE = 4
-const R = CUBE_SIZE / 2
+const R = 2
 const R2 = R * R
 const recipR2 = 1.0 / R2
 const recip3R2 = 1.0 / (3.0 * R2)
 const normalizer = 3.0 / (4.0 * R)
+const CUBE_SIZE = R * 2
 
 export const makeHalo = position => {
   const geometry = new THREE.BoxBufferGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)

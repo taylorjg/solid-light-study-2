@@ -1,10 +1,8 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper.js'
-import { Form, setSpeed } from './form'
 import { makeHalo } from './halo'
 import { makeShaft } from './shaft'
-import * as C from './constants'
 
 const main = async () => {
   const container = document.getElementById('container')
@@ -28,13 +26,6 @@ const main = async () => {
   controls.enableDamping = true
   controls.dampingFactor = 0.9
   controls.autoRotate = false
-
-  const y = C.SCREEN_IMAGE_CENTRE_Y
-  const rx = C.SCREEN_IMAGE_RADIUS_X
-  const ry = C.SCREEN_IMAGE_RADIUS_Y
-
-  const leftForm = new Form(scene, C.LEFT_FORM_CENTRE_X, y, rx, ry, true)
-  const rightForm = new Form(scene, C.RIGHT_FORM_CENTRE_X, y, rx, ry, false)
 
   const halos = []
   halos.push(makeHalo(new THREE.Vector3(-4, 0, 2)))
@@ -69,8 +60,8 @@ const main = async () => {
       vertexNormalsHelpers.forEach(vertexNormalsHelper => scene.remove(vertexNormalsHelper))
       vertexNormalsHelpers = null
     } else {
-      vertexNormalsHelpers = shafts.map(halo => {
-        const vertexNormalsHelper = new VertexNormalsHelper(halo.mesh, 0.1, 0xffffff)
+      vertexNormalsHelpers = halos.concat(shafts).map(({ mesh }) => {
+        const vertexNormalsHelper = new VertexNormalsHelper(mesh, 0.1, 0xffffff)
         scene.add(vertexNormalsHelper)
         return vertexNormalsHelper
       })
@@ -79,18 +70,12 @@ const main = async () => {
 
   document.addEventListener('keydown', e => {
     switch (e.key) {
-      case '1': return setSpeed(1)
-      case '2': return setSpeed(2)
-      case '3': return setSpeed(5)
-      case '4': return setSpeed(10)
       case 'a': return toggleAxesHelper()
       case 'v': return toggleVertexNormalsHelpers()
     }
   })
 
   renderer.setAnimationLoop(() => {
-    leftForm.update()
-    rightForm.update()
     controls.update()
     halos.forEach(halo => halo.update(camera))
     shafts.forEach(shaft => shaft.update(camera))

@@ -26,5 +26,5 @@ float CalculateHaloBrightness() {
 
 void main() {
   float B = CalculateHaloBrightness();
-  gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0) * B;
+  gl_FragColor = vec4(1.0) * B;
 }
