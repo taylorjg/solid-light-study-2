@@ -33,7 +33,7 @@ const main = async () => {
   halos.forEach(halo => scene.add(halo.mesh))
 
   const shafts = []
-  shafts.push(makeShaft(0, 4))
+  shafts.push(makeShaft())
   shafts.forEach(shaft => scene.add(shaft.mesh))
 
   window.addEventListener('resize', () => {
@@ -60,7 +60,9 @@ const main = async () => {
       vertexNormalsHelpers.forEach(vertexNormalsHelper => scene.remove(vertexNormalsHelper))
       vertexNormalsHelpers = null
     } else {
-      vertexNormalsHelpers = halos.concat(shafts).map(({ mesh }) => {
+      // const things = [...halos, ...shafts]
+      const things = shafts
+      vertexNormalsHelpers = things.map(({ mesh }) => {
         const vertexNormalsHelper = new VertexNormalsHelper(mesh, 0.1, 0xffffff)
         scene.add(vertexNormalsHelper)
         return vertexNormalsHelper
