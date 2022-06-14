@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper.js'
 import { makeHalo } from './halo'
 import { makeShaft } from './shaft'
+import * as dat from 'dat.gui'
 
 const main = async () => {
   const container = document.getElementById('container')
@@ -27,13 +28,19 @@ const main = async () => {
   controls.dampingFactor = 0.9
   controls.autoRotate = false
 
+  const coneGeometry = new THREE.ConeGeometry(0.5, 1, 32)
+  const coneMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff })
+  const coneMesh = new THREE.Mesh(coneGeometry, coneMaterial)
+  coneMesh.position.set(-4, -0.5, 2 + 5)
+  scene.add(coneMesh)
+
   const halos = []
-  // halos.push(makeHalo(new THREE.Vector3(-4, 0, 2)))
-  // halos.push(makeHalo(new THREE.Vector3(4, 0, 2)))
+  halos.push(makeHalo(new THREE.Vector3(-4, 0, 2)))
+  halos.push(makeHalo(new THREE.Vector3(4, 0, 2)))
   halos.forEach(halo => scene.add(halo.mesh))
 
   const shafts = []
-  shafts.push(makeShaft())
+  // shafts.push(makeShaft())
   shafts.forEach(shaft => scene.add(shaft.mesh))
 
   window.addEventListener('resize', () => {
@@ -88,6 +95,18 @@ const main = async () => {
     shafts.forEach(shaft => shaft.update(camera))
     renderer.render(scene, camera)
   })
+
+  const params = {
+    'cone.z': coneMesh.position.z
+  }
+
+  const gui = new dat.GUI()
+
+  gui.add(params, 'cone.z', 2 - 5, 2 + 5).step(1).onChange(value => {
+    coneMesh.position.z = value
+  })
+
+  gui.open()
 }
 
 main()
