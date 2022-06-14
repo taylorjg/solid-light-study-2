@@ -15,8 +15,8 @@ const main = async () => {
   const scene = new THREE.Scene()
 
   const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 50)
-  camera.position.set(1, 1, 12)
-  camera.lookAt(new THREE.Vector3(0, 0, 0))
+  camera.position.set(0, 0, 20)
+  camera.lookAt(0, 0, 0)
   scene.add(camera)
 
   const controls = new OrbitControls(camera, renderer.domElement)
@@ -28,8 +28,8 @@ const main = async () => {
   controls.autoRotate = false
 
   const halos = []
-  halos.push(makeHalo(new THREE.Vector3(-4, 0, 2)))
-  halos.push(makeHalo(new THREE.Vector3(4, 0, 2)))
+  // halos.push(makeHalo(new THREE.Vector3(-4, 0, 2)))
+  // halos.push(makeHalo(new THREE.Vector3(4, 0, 2)))
   halos.forEach(halo => scene.add(halo.mesh))
 
   const shafts = []
@@ -55,13 +55,18 @@ const main = async () => {
     }
   }
 
+  const includeHalos = false
+  const includeShafts = true
+
   const toggleVertexNormalsHelpers = () => {
     if (vertexNormalsHelpers) {
       vertexNormalsHelpers.forEach(vertexNormalsHelper => scene.remove(vertexNormalsHelper))
       vertexNormalsHelpers = null
     } else {
-      // const things = [...halos, ...shafts]
-      const things = shafts
+      const things = [
+        ...(includeHalos ? halos : []),
+        ...(includeShafts ? shafts : [])
+      ]
       vertexNormalsHelpers = things.map(({ mesh }) => {
         const vertexNormalsHelper = new VertexNormalsHelper(mesh, 0.1, 0xffffff)
         scene.add(vertexNormalsHelper)
