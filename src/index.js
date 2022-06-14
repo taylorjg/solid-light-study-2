@@ -1,11 +1,15 @@
 import * as THREE from 'three'
+import * as dat from 'dat.gui'
+import Stats from 'stats.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper.js'
 import { makeHalo } from './halo'
 import { makeShaft } from './shaft'
-import * as dat from 'dat.gui'
 
 const main = async () => {
+  const stats = new Stats()
+  document.body.appendChild(stats.dom)
+
   const container = document.getElementById('container')
   const w = container.offsetWidth
   const h = container.offsetHeight
@@ -94,6 +98,7 @@ const main = async () => {
     halos.forEach(halo => halo.update(camera))
     shafts.forEach(shaft => shaft.update(camera))
     renderer.render(scene, camera)
+    stats.update()
   })
 
   const params = {
