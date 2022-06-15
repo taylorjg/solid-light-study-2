@@ -1,4 +1,7 @@
+uniform sampler2D tStructureBuffer;
+// uniform vec2 resolution;
 uniform vec3 cameraPositionOS;
+// uniform vec3 cameraViewOS;
 uniform float R2;
 uniform float recipR2;
 uniform float recip3R2;
@@ -12,6 +15,12 @@ float CalculateHaloBrightness() {
 	float p2 = dot(pobject, pobject);
 	float pv = -dot(pobject, vdir);
 	float m = sqrt(max(pv * pv - v2 * (p2 - R2), 0.0));
+
+	// TODO: pass in 'resolution' as a uniform
+	vec2 resolution = vec2(3066.0, 1124.0);
+  vec2 pixelCoord = gl_FragCoord.xy / resolution;
+  vec4 depth = texture2D(tStructureBuffer, pixelCoord);
+	// float t0 = 1.0 + depth.z / dot(cameraViewOS, vdir);
 
 	// Calculate clamped limits of integration.
 	float t1 = clamp((pv - m) / v2, 0.0, 1.0);

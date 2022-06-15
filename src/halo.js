@@ -10,7 +10,7 @@ const recip3R2 = 1.0 / (3.0 * R2)
 const normalizer = 3.0 / (4.0 * R)
 const CUBE_SIZE = R * 2
 
-export const makeHalo = position => {
+export const makeHalo = (position, structureBufferTexture) => {
   const geometry = new THREE.BoxBufferGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)
   const material = new THREE.ShaderMaterial({
     uniforms: {
@@ -18,7 +18,8 @@ export const makeHalo = position => {
       R2: { value: R2 },
       recipR2: { value: recipR2 },
       recip3R2: { value: recip3R2 },
-      normalizer: { value: normalizer }
+      normalizer: { value: normalizer },
+      tStructureBuffer: { value: structureBufferTexture }
     },
     vertexShader: haloVertexShader,
     fragmentShader: haloFragmentShader,

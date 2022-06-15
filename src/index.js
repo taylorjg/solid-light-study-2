@@ -3,10 +3,14 @@ import * as dat from 'dat.gui'
 import Stats from 'stats.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper.js'
+import structureBufferVertexShader from './shaders/structure-buffer-vertex-shader.glsl'
+import structureBufferFragmentShader from './shaders/structure-buffer-fragment-shader.glsl'
 import { makeHalo } from './halo'
-import { makeShaft } from './shaft'
+// import { makeShaft } from './shaft'
 
 const main = async () => {
+  const DPR = window.devicePixelRatio
+
   const stats = new Stats()
   document.body.appendChild(stats.dom)
 
@@ -15,7 +19,19 @@ const main = async () => {
   const h = container.offsetHeight
   const renderer = new THREE.WebGLRenderer({ antialias: true })
   renderer.setSize(w, h)
+  renderer.setPixelRatio(DPR)
   container.appendChild(renderer.domElement)
+
+  const structureBuffer = new THREE.WebGLRenderTarget(w * DPR, h * DPR)
+
+  const makeStructureBufferMaterial = () => {
+    return new THREE.ShaderMaterial({
+      vertexShader: structureBufferVertexShader,
+      fragmentShader: structureBufferFragmentShader,
+    })
+  }
+
+  const structureBufferMaterial = makeStructureBufferMaterial()
 
   const scene = new THREE.Scene()
 
@@ -39,13 +55,14 @@ const main = async () => {
   scene.add(coneMesh)
 
   const halos = []
-  halos.push(makeHalo(new THREE.Vector3(-4, 0, 2)))
-  halos.push(makeHalo(new THREE.Vector3(4, 0, 2)))
+  halos.push(makeHalo(new THREE.Vector3(-4, 0, 2), structureBuffer.texture))
+  halos.push(makeHalo(new THREE.Vector3(4, 0, 2), structureBuffer.texture))
   halos.forEach(halo => scene.add(halo.mesh))
+  halos.forEach(halo => halo.mesh.layers.set(1))
 
   const shafts = []
   // shafts.push(makeShaft())
-  shafts.forEach(shaft => scene.add(shaft.mesh))
+  // shafts.forEach(shaft => scene.add(shaft.mesh))
 
   window.addEventListener('resize', () => {
     renderer.setSize(container.offsetWidth, container.offsetHeight)
@@ -96,8 +113,34 @@ const main = async () => {
   renderer.setAnimationLoop(() => {
     controls.update()
     halos.forEach(halo => halo.update(camera))
-    shafts.forEach(shaft => shaft.update(camera))
+    // shafts.forEach(shaft => shaft.update(camera))
+
+    const savedMaterialsMap = new Map()
+
+    scene.traverse(object => {
+      if (object.isMesh && object.layers.mask === 1) {
+        savedMaterialsMap.set(object, object.material)
+        object.material = structureBufferMaterial
+      }
+    })
+
+    renderer.setRenderTarget(structureBuffer)
+    camera.layers.set(0)
     renderer.render(scene, camera)
+
+    scene.traverse(object => {
+      if (object.isMesh && object.layers.mask === 1) {
+        if (savedMaterialsMap.has(object)) {
+          object.material = savedMaterialsMap.get(object)
+        }
+      }
+    })
+
+    renderer.setRenderTarget(null)
+    camera.layers.enable(0)
+    camera.layers.enable(1)
+    renderer.render(scene, camera)
+
     stats.update()
   })
 
