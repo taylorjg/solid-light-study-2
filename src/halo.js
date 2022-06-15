@@ -14,7 +14,7 @@ export const makeHalo = position => {
   const geometry = new THREE.BoxBufferGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      cameraPositionInObjectSpace: { value: new THREE.Vector3() },
+      cameraPositionOS: { value: new THREE.Vector3() },
       R2: { value: R2 },
       recipR2: { value: recipR2 },
       recip3R2: { value: recip3R2 },
@@ -34,9 +34,9 @@ export const makeHalo = position => {
   return {
     mesh,
     update: camera => {
-      const cameraPositionInWorldSpace = camera.position.clone()
-      const cameraPositionInObjectSpace = mesh.worldToLocal(cameraPositionInWorldSpace)
-      material.uniforms.cameraPositionInObjectSpace.value.copy(cameraPositionInObjectSpace)
+      const cameraPositionWS = camera.position.clone()
+      const cameraPositionOS = mesh.worldToLocal(cameraPositionWS.clone())
+      mesh.material.uniforms.cameraPositionOS.value = cameraPositionOS
     }
   }
 }

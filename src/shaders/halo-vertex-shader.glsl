@@ -1,6 +1,6 @@
-varying vec3 vPointInObjectSpace;
+varying vec3 pobject;
 
 void main() {
-  vPointInObjectSpace = position;
+  pobject = position;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }

@@ -1,16 +1,16 @@
-uniform vec3 cameraPositionInObjectSpace;
+uniform vec3 cameraPositionOS;
 uniform float R2;
 uniform float recipR2;
 uniform float recip3R2;
 uniform float normalizer;
 
-varying vec3 vPointInObjectSpace;
+varying vec3 pobject;
 
 float CalculateHaloBrightness() {
-	vec3 vdir = cameraPositionInObjectSpace - vPointInObjectSpace;
+	vec3 vdir = cameraPositionOS - pobject;
 	float v2 = dot(vdir, vdir);
-	float p2 = dot(vPointInObjectSpace, vPointInObjectSpace);
-	float pv = -dot(vPointInObjectSpace, vdir);
+	float p2 = dot(pobject, pobject);
+	float pv = -dot(pobject, vdir);
 	float m = sqrt(max(pv * pv - v2 * (p2 - R2), 0.0));
 
 	// Calculate clamped limits of integration.
