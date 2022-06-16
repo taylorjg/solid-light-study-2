@@ -23,6 +23,7 @@ const main = async () => {
   container.appendChild(renderer.domElement)
 
   const structureBuffer = new THREE.WebGLRenderTarget(w * DPR, h * DPR)
+  structureBuffer.texture.type = THREE.HalfFloatType
 
   const makeStructureBufferMaterial = () => {
     return new THREE.ShaderMaterial({
@@ -54,9 +55,12 @@ const main = async () => {
   coneMesh.position.set(-4, -0.5, 2 + 5)
   scene.add(coneMesh)
 
+  const resolution = new THREE.Vector2(w * DPR, h * DPR)
+  console.log(resolution)
+
   const halos = []
-  halos.push(makeHalo(new THREE.Vector3(-4, 0, 2), structureBuffer.texture))
-  halos.push(makeHalo(new THREE.Vector3(4, 0, 2), structureBuffer.texture))
+  halos.push(makeHalo(new THREE.Vector3(-4, 0, 2), structureBuffer.texture, resolution))
+  halos.push(makeHalo(new THREE.Vector3(4, 0, 2), structureBuffer.texture, resolution))
   halos.forEach(halo => scene.add(halo.mesh))
   halos.forEach(halo => halo.mesh.layers.set(1))
 
@@ -124,6 +128,7 @@ const main = async () => {
       }
     })
 
+    renderer.setClearColor(new THREE.Color(0, 0, 10000.0))
     renderer.setRenderTarget(structureBuffer)
     camera.layers.set(0)
     renderer.render(scene, camera)
@@ -136,6 +141,7 @@ const main = async () => {
       }
     })
 
+    renderer.setClearColor(new THREE.Color(0, 0, 0))
     renderer.setRenderTarget(null)
     camera.layers.enable(0)
     camera.layers.enable(1)
