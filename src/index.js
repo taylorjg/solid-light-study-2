@@ -56,11 +56,11 @@ const main = async () => {
   scene.add(coneMesh)
 
   const resolution = new THREE.Vector2(w * DPR, h * DPR)
-  console.log(resolution)
 
   const halos = []
-  halos.push(makeHalo(new THREE.Vector3(-4, 0, 2), structureBuffer.texture, resolution))
-  halos.push(makeHalo(new THREE.Vector3(4, 0, 2), structureBuffer.texture, resolution))
+  // halos.push(makeHalo(new THREE.Vector3(-4, 0, 2), structureBuffer.texture, resolution))
+  // halos.push(makeHalo(new THREE.Vector3(-4, 0, 2), structureBuffer.texture, resolution))
+  halos.push(makeHalo(new THREE.Vector3(), structureBuffer.texture, resolution))
   halos.forEach(halo => scene.add(halo.mesh))
   halos.forEach(halo => halo.mesh.layers.set(1))
 
@@ -77,6 +77,7 @@ const main = async () => {
   let axesHelper = null
   let vertexNormalsHelpers = null
   let wireframesOn = false
+  let cameraHelper = null
 
   const doItForHalos = true
   const doItForShafts = true
@@ -119,7 +120,19 @@ const main = async () => {
     }
   }
 
+  const toggleCameraHelper = () => {
+    if (cameraHelper) {
+      scene.remove(cameraHelper)
+      cameraHelper = null
+    } else {
+      cameraHelper = new THREE.CameraHelper(camera)
+      cameraHelper.material.color = new THREE.Color(0xffffff)
+      scene.add(cameraHelper)
+    }
+  }
+
   renderer.setAnimationLoop(() => {
+    cameraHelper && cameraHelper.update()
     controls.update()
     halos.forEach(halo => halo.update(camera))
     shafts.forEach(shaft => shaft.update(camera))
@@ -159,7 +172,8 @@ const main = async () => {
     'Cone Z': coneMesh.position.z,
     'Axes Helper': Boolean(axesHelper),
     'Vertex Normals Helpers': Boolean(vertexNormalsHelpers),
-    'Wireframes': wireframesOn
+    'Wireframes': wireframesOn,
+    'Camera Helper': Boolean(cameraHelper)
   }
 
   const gui = new dat.GUI()
@@ -171,6 +185,7 @@ const main = async () => {
   const axesHelperController = gui.add(params, 'Axes Helper').onChange(toggleAxesHelper)
   const vertexNormalsHelpersController = gui.add(params, 'Vertex Normals Helpers').onChange(toggleVertexNormalsHelpers)
   const wireframesController = gui.add(params, 'Wireframes').onChange(toggleWireframes)
+  const cameraHelperController = gui.add(params, 'Camera Helper').onChange(toggleCameraHelper)
 
   gui.open()
 
@@ -179,6 +194,7 @@ const main = async () => {
   document.addEventListener('keydown', e => {
     switch (e.key) {
       case 'a': return toggleController(axesHelperController)
+      case 'c': return toggleController(cameraHelperController)
       case 'v': return toggleController(vertexNormalsHelpersController)
       case 'w': return toggleController(wireframesController)
     }

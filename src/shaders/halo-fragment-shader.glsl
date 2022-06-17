@@ -21,10 +21,10 @@ float CalculateHaloBrightness() {
 	float t0 = 1.0 + depth / dot(cameraViewOS, vdir);
 
 	// Calculate clamped limits of integration.
-	// float t1 = clamp((pv - m) / v2, t0, 1.0);
-	// float t2 = clamp((pv + m) / v2, t0, 1.0);
-	float t1 = clamp((pv - m) / v2, 0.0, 1.0);
-	float t2 = clamp((pv + m) / v2, 0.0, 1.0);
+	float t1 = clamp((pv - m) / v2, t0, 1.0);
+	float t2 = clamp((pv + m) / v2, t0, 1.0);
+	// float t1 = clamp((pv - m) / v2, 0.0, 1.0);
+	// float t2 = clamp((pv + m) / v2, 0.0, 1.0);
 	float u1 = t1 * t1;
 	float u2 = t2 * t2;
 
