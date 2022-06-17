@@ -78,28 +78,29 @@ const main = async () => {
   let vertexNormalsHelpers = null
   let wireframesOn = false
 
+  const doItForHalos = true
+  const doItForShafts = true
+
+  const things = [
+    ...(doItForHalos ? halos : []),
+    ...(doItForShafts ? shafts : [])
+  ]
+
   const toggleAxesHelper = () => {
     if (axesHelper) {
       scene.remove(axesHelper)
       axesHelper = null
     } else {
-      axesHelper = new THREE.AxesHelper(4)
+      axesHelper = new THREE.AxesHelper(8)
       scene.add(axesHelper)
     }
   }
-
-  const includeHalos = true
-  const includeShafts = true
 
   const toggleVertexNormalsHelpers = () => {
     if (vertexNormalsHelpers) {
       vertexNormalsHelpers.forEach(vertexNormalsHelper => scene.remove(vertexNormalsHelper))
       vertexNormalsHelpers = null
     } else {
-      const things = [
-        ...(includeHalos ? halos : []),
-        ...(includeShafts ? shafts : [])
-      ]
       vertexNormalsHelpers = things.map(({ mesh }) => {
         const vertexNormalsHelper = new VertexNormalsHelper(mesh, 0.1, 0xffff00)
         scene.add(vertexNormalsHelper)
@@ -109,10 +110,6 @@ const main = async () => {
   }
 
   const toggleWireframes = () => {
-    const things = [
-      ...(includeHalos ? halos : []),
-      ...(includeShafts ? shafts : [])
-    ]
     if (wireframesOn) {
       things.forEach(({ lineSegments }) => lineSegments && scene.remove(lineSegments))
       wireframesOn = false
