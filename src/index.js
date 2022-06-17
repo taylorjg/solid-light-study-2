@@ -60,7 +60,7 @@ const main = async () => {
 
   const halos = []
   halos.push(makeHalo(new THREE.Vector3(-4, 0, 2), structureBuffer.texture, resolution))
-  halos.push(makeHalo(new THREE.Vector3(4, 0, 2), structureBuffer.texture, resolution))
+  // halos.push(makeHalo(new THREE.Vector3(4, 0, 2), structureBuffer.texture, resolution))
   halos.forEach(halo => scene.add(halo.mesh))
   halos.forEach(halo => halo.mesh.layers.set(1))
 
@@ -156,7 +156,7 @@ const main = async () => {
 
   const gui = new dat.GUI()
 
-  gui.add(params, 'cone.z', 2 - 5, 2 + 5).step(1).onChange(value => {
+  gui.add(params, 'cone.z', 2 - 5, 2 + 5).step(0.1).onChange(value => {
     coneMesh.position.z = value
   })
 

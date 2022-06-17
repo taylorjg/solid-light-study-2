@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import haloVertexShader from './shaders/halo-vertex-shader.glsl'
 import haloFragmentShader from './shaders/halo-fragment-shader.glsl'
-import { reverseNormals } from './utils'
+import { makeInwardFacingBoxGeometry } from './inward-facing-box-geometry'
 
 const R = 2
 const R2 = R * R
@@ -11,7 +11,7 @@ const normalizer = 3.0 / (4.0 * R)
 const CUBE_SIZE = R * 2
 
 export const makeHalo = (position, structureBufferTexture, resolution) => {
-  const geometry = new THREE.BoxBufferGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)
+  const geometry = makeInwardFacingBoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)
   const material = new THREE.ShaderMaterial({
     uniforms: {
       cameraPositionOS: { value: new THREE.Vector3() },
@@ -25,18 +25,12 @@ export const makeHalo = (position, structureBufferTexture, resolution) => {
     },
     vertexShader: haloVertexShader,
     fragmentShader: haloFragmentShader,
-    side: THREE.BackSide,
     transparent: true,
     depthTest: false,
     blending: THREE.AdditiveBlending
   })
   const mesh = new THREE.Mesh(geometry, material)
   mesh.position.copy(position)
-
-  reverseNormals(geometry)
-
-  const prec = 4
-  const vecToString = v => v.toArray().map(v => v.toFixed(prec)).join(', ')
 
   return {
     mesh,
@@ -47,7 +41,6 @@ export const makeHalo = (position, structureBufferTexture, resolution) => {
       const cameraViewWS = camera.getWorldDirection(new THREE.Vector3())
       const cameraViewOS = mesh.worldToLocal(cameraViewWS.clone())
       mesh.material.uniforms.cameraViewOS.value = cameraViewOS
-      // console.log(`cameraViewWS: ${vecToString(cameraViewWS)}; cameraViewOS: ${vecToString(cameraViewOS)}`)
     }
   }
 }
