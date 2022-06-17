@@ -32,12 +32,21 @@ export const makeHalo = (position, structureBufferTexture, resolution) => {
   const mesh = new THREE.Mesh(geometry, material)
   mesh.position.copy(position)
 
+  const wireframe = new THREE.WireframeGeometry(geometry)
+  const lineSegments = new THREE.LineSegments(wireframe)
+  lineSegments.position.copy(position)
+  lineSegments.material.color = new THREE.Color('pink')
+  lineSegments.material.opacity = 0.5
+  lineSegments.material.transparent = true
+  
   return {
     mesh,
+    lineSegments,
     update: camera => {
       const cameraPositionWS = camera.position.clone()
       const cameraPositionOS = mesh.worldToLocal(cameraPositionWS.clone())
       mesh.material.uniforms.cameraPositionOS.value = cameraPositionOS
+
       const cameraViewWS = camera.getWorldDirection(new THREE.Vector3())
       const cameraViewOS = mesh.worldToLocal(cameraViewWS.clone())
       mesh.material.uniforms.cameraViewOS.value = cameraViewOS

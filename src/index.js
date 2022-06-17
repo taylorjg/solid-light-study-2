@@ -60,7 +60,7 @@ const main = async () => {
 
   const halos = []
   halos.push(makeHalo(new THREE.Vector3(-4, 0, 2), structureBuffer.texture, resolution))
-  // halos.push(makeHalo(new THREE.Vector3(4, 0, 2), structureBuffer.texture, resolution))
+  halos.push(makeHalo(new THREE.Vector3(4, 0, 2), structureBuffer.texture, resolution))
   halos.forEach(halo => scene.add(halo.mesh))
   halos.forEach(halo => halo.mesh.layers.set(1))
 
@@ -76,6 +76,7 @@ const main = async () => {
 
   let axesHelper = null
   let vertexNormalsHelpers = null
+  let wireframesOn = false
 
   const toggleAxesHelper = () => {
     if (axesHelper) {
@@ -87,7 +88,7 @@ const main = async () => {
     }
   }
 
-  const includeHalos = false
+  const includeHalos = true
   const includeShafts = true
 
   const toggleVertexNormalsHelpers = () => {
@@ -100,24 +101,31 @@ const main = async () => {
         ...(includeShafts ? shafts : [])
       ]
       vertexNormalsHelpers = things.map(({ mesh }) => {
-        const vertexNormalsHelper = new VertexNormalsHelper(mesh, 0.1, 0xffffff)
+        const vertexNormalsHelper = new VertexNormalsHelper(mesh, 0.1, 0xffff00)
         scene.add(vertexNormalsHelper)
         return vertexNormalsHelper
       })
     }
   }
 
-  document.addEventListener('keydown', e => {
-    switch (e.key) {
-      case 'a': return toggleAxesHelper()
-      case 'v': return toggleVertexNormalsHelpers()
+  const toggleWireframes = () => {
+    const things = [
+      ...(includeHalos ? halos : []),
+      ...(includeShafts ? shafts : [])
+    ]
+    if (wireframesOn) {
+      things.forEach(({ lineSegments }) => lineSegments && scene.remove(lineSegments))
+      wireframesOn = false
+    } else {
+      things.forEach(({ lineSegments }) => lineSegments && scene.add(lineSegments))
+      wireframesOn = true
     }
-  })
+  }
 
   renderer.setAnimationLoop(() => {
     controls.update()
     halos.forEach(halo => halo.update(camera))
-    // shafts.forEach(shaft => shaft.update(camera))
+    shafts.forEach(shaft => shaft.update(camera))
 
     const savedMaterialsMap = new Map()
 
@@ -151,16 +159,33 @@ const main = async () => {
   })
 
   const params = {
-    'cone.z': coneMesh.position.z
+    'Cone Z': coneMesh.position.z,
+    'Axes Helper': Boolean(axesHelper),
+    'Vertex Normals Helpers': Boolean(vertexNormalsHelpers),
+    'Wireframes': wireframesOn
   }
 
   const gui = new dat.GUI()
 
-  gui.add(params, 'cone.z', 2 - 5, 2 + 5).step(0.1).onChange(value => {
+  gui.add(params, 'Cone Z', 2 - 5, 2 + 5, 0.1).onChange(value => {
     coneMesh.position.z = value
   })
 
+  const axesHelperController = gui.add(params, 'Axes Helper').onChange(toggleAxesHelper)
+  const vertexNormalsHelpersController = gui.add(params, 'Vertex Normals Helpers').onChange(toggleVertexNormalsHelpers)
+  const wireframesController = gui.add(params, 'Wireframes').onChange(toggleWireframes)
+
   gui.open()
+
+  const toggleController = controller => controller.setValue(!controller.getValue())
+
+  document.addEventListener('keydown', e => {
+    switch (e.key) {
+      case 'a': return toggleController(axesHelperController)
+      case 'v': return toggleController(vertexNormalsHelpersController)
+      case 'w': return toggleController(wireframesController)
+    }
+  })
 }
 
 main()
